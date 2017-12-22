@@ -1,0 +1,185 @@
+package percolation;
+import percolation.PercolationMethods;
+import java.lang.Math;
+public class Percolation {
+	static int n=0;
+	public static void main(String[] args) {
+		PercolationMethods obj= new PercolationMethods();
+		//finding probablity of sand for 50x50, 100x100 and 200x200 matrix
+		obj.findProbablity(50);
+		obj.findProbablity(100);
+		obj.findProbablity(200);
+	}
+}
+// for the following code
+//r,r1,row-correspond to row index in matrix
+//c,c1,col-corrrespond to column index in matrix
+class PercolationMethods {
+	public int[][] Ground(int n, double p) {
+		int[][] ground = new int[n][n];
+		for(int row=0; row<ground.length; ++row) {
+			for(int col=0; col<ground[row].length; ++col) {
+				//using math.random to generate a random number and check if it's above p or below p
+				double randNum=Math.random();
+				//if less than p assign it as an empty space
+				if(randNum<p) 
+					ground[row][col]=0;
+				//if grater than p assign the block as sand
+				else
+					ground[row][col]=1;
+			}
+		}
+		return ground;
+	}
+	//This method can be called anywhere to print out ground matrix 
+	//in a systemetic manner!
+	void printMatrix(int[][] grid) {
+		for(int r=0; r<grid.length; r++) {
+			for(int c=0; c<grid[r].length; c++) {
+				System.out.print(grid[r][c]+" ");
+			}
+			System.out.println();
+		}
+		System.out.println();
+	}
+	void seep(int[][] ground,int row) {
+		//Converting all zeros of 'row=0' to 2 
+		if(row==0) {
+			for(int c=0;c<ground.length;c++)
+				ground[0][c]=ground[row][c]==1? 1:2;
+		}
+		//the following code check step wise each columns
+		for(int c=0;c<ground.length;c++) {
+			if((row>=0)&&(row<ground.length-1)){
+				//checks if right diognal has water in it
+				if((ground[row][c]==2)&&(ground[row+1][c]==0)) {
+					ground[row+1][c]=2;
+				}
+				//checks if left diognal has water in it
+				if((c>0)&&(c<ground.length-1)){
+					if((ground[row][c]==2)&&(ground[row+1][c+1]==0)) {
+						ground[row+1][c+1]=2;
+					}
+					if((ground[row][c]==2)&&(ground[row+1][c-1]==0)) {
+						ground[row+1][c-1]=2;
+					}
+				}
+			}
+		}
+		//the following set of lines checks if two adjacent blocks  
+		//if one has water in it and next one is an empty space
+		//it converts that block to a water block!
+		// c1- column index
+		for(int c1=0;c1<ground.length;c1++) {
+			//System.out.println("looping this");
+			if((c1>=0)&&(c1<=ground.length-2)&&(row<ground.length-1)){
+				while((ground[row+1][c1]==2)&&(ground[row+1][c1+1]==0)) {
+					ground[row+1][c1+1]=2;}
+			}
+			if((c1>0)&&(c1<ground.length)&&(row<ground.length-1)){
+				while((ground[row+1][c1]==2)&&(ground[row+1][c1-1]==0)) {
+					ground[row+1][c1-1]=2;}
+			}
+		}
+	}
+	boolean percolate(int[][] ground) {
+		//the following function checks if water has percolated to maximum limit
+		for(int row=0;row<=ground.length-1;row++){
+			for(int c=0;c<=ground.length-1;c++) {
+				if((row>=0)&&(row<ground.length-1)){
+					if((ground[row][c]==2)&&(ground[row+1][c]==0))
+						return false;
+					if((c>0)&&(c<ground.length-1)){
+						if((ground[row][c]==2)&&(ground[row+1][c+1]==0)) 
+							return false;
+						if((ground[row][c]==2)&&(ground[row+1][c-1]==0)) 
+							return false;
+					}
+				}
+			}
+			//if a water block is surrounded by an empty block
+			//percolation should return false!!
+			for(int c1=0;c1<ground.length-1;c1++) {
+				if((c1>=0)&&(c1<=ground.length-2)){
+					while((ground[row][c1]==2)&&(ground[row][c1+1]==0)) {
+						ground[row][c1+1]=2;
+						return false;}
+				}
+				if((c1>0)&&(c1<=ground.length-1)){
+					while((ground[row][c1]==2)&&(ground[row][c1-1]==0)) {
+						ground[row][c1-1]=2;
+						return false;}
+				}
+			}
+		}
+		return true;
+	}
+	//Following method performs percolation for n times
+	//Returns the ratio of number of times water seeped till the bottom
+	//to the total number of times this loop was executed.
+	double percolateNtimes(int[][] ground,double mTimes,int n, double p) {
+		double count=0;
+		double probWaterSeep=0;
+		for(int i=0;i<=mTimes;i++) {
+			int[][] grid=Ground(n,p);
+			for(int k=0;k<grid.length;k++) {
+				seep(grid,k);
+				if(percolate(grid)==true)
+					break;}
+
+			for(int c=0;c<grid.length;c++) {
+				if(grid[n-1][c]==2)
+					count=count+1;
+				break;
+			}
+			probWaterSeep=count/mTimes;
+		}
+
+		return probWaterSeep;
+	}
+	double findProbablity(int n) {
+		double p=0.5555;
+		double delta=0.05;
+		int trials=150;
+		/*the following runs for 150 times and
+		 *each time it checks percolateNtimes and returns 
+		 *number of times and returns a fraction which tells
+		 *how many times water had reached the bottom
+		 */
+		for(int j=0;j<=trials;j++) {
+			int[][] grid=Ground(n,p);
+			double toCheck=percolateNtimes(grid,50,n,p);
+			if(toCheck>=0.49&toCheck<=0.500011111) {
+				if((p+delta>=0)&&(p+delta<=1)){
+					delta=0.008*delta;
+					p=p-delta;
+				}
+			}
+			/*once we get a value for toCheck
+			 *the following conditions try to bring that value
+			 *close enough to 50% of times water reaching the 
+			 *last row!
+			 */
+			else if(toCheck<0.49) {
+				if((trials<50)&&(p+delta>=0)&&(p+delta<=1)) {
+					p=p+delta;
+				}
+				if((trials>=50)&&(p+delta>=0)&&(p+delta<=1)) {
+					delta=0.8*delta;
+					p=p+delta;
+				}
+			}
+			else if(toCheck>0.500011111) {
+				if((trials<50)&&(p+delta>=0)&&(p+delta<=1)) {
+					p=p-delta;
+				}
+				if((trials>=50)&&(p+delta>=0)&&(p+delta<=1)) {
+					delta=0.8*delta;
+					p=p-delta;
+				}
+			}	
+		}
+		System.out.println("Probablity of sand for "+ n +" x "+n+" matrix is "+ (1-p));
+		return p;	
+	}
+}
