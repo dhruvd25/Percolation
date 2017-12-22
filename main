@@ -1,0 +1,16 @@
+package percolation;
+import percolation.PercolationMethods;
+import java.lang.Math;
+public class Percolation {
+	static int n=0;
+	public static void main(String[] args) {
+		PercolationMethods obj= new PercolationMethods();
+		//finding probablity of sand for 50x50, 100x100 and 200x200 matrix
+		obj.findProbablity(50);
+		obj.findProbablity(100);
+		obj.findProbablity(200);
+	}
+}
+// for the following code
+//r,r1,row-correspond to row index in matrix
+//c,c1,col-corrrespond to column index in matrix
